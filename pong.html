@@ -1,0 +1,173 @@
+<!DOCTYPE html> 
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <title>Pong</title>
+        <style>
+            *{padding:0; margin: 0; }
+            canvas {background: rgb(51, 49, 49); display: block; margin: 0 auto;}
+        </style> 
+    </head>
+    <body>
+        <canvas id = "myCanvas" width = "1020" height = "720"></canvas>
+
+        <script> 
+            //Variables
+            var canvas = document.getElementById("myCanvas");
+            var ctx = canvas.getContext("2d");
+            var ballRadius = 13; 
+            var Ball_Speed = 1.1;
+            var paddleWidth = 17;
+            var paddleHeight = 90;
+            var centerLineX = canvas.width / 2; 
+            var dashHeight = 10;
+            var dashWidth = 5;
+            var dashSpace = 7;
+            var numDashes = 43;
+            var upPressed = false;
+            var downPressed = false;
+            var x = canvas.width / 2; //This is the x position of the ball
+            var y = canvas.height / 2; //This is the y position of the ball
+            var offsetRight = 10;
+            var offsetLeft = canvas.width - 27;
+            var offsetTop = 7;
+            var paddlePlayer_Y = (canvas.height - paddleHeight) / 2; //This is the y position of the player's paddle
+            var paddleAI_Y = paddlePlayer_Y; //This is the y postion of the AI's paddle
+            var AI_Speed = 1.1;
+            var dx = 2; //Rate of change of x position of the ball
+            var dy = 2; //Rate of change of the y postion of the ball 
+            var scorePlayer = 2;
+            var scoreAI = 3; 
+
+            document.addEventListener("mousemove", mouseMoveHandler,false);
+            document.addEventListener("keydown", keyDownHandler, false);
+            document.addEventListener("keyup", keyUpHandler, false);
+
+            function mouseMoveHandler(e){
+                if(e.clientY < canvas.height && e.clientY > 0){
+                    paddlePlayer_Y = e.clientY - paddleWidth / 2; 
+                }
+            }
+
+            function keyDownHandler(e){
+                if(e.key == "Up" || e.key == "ArrowUp"){
+                    upPressed = true;
+                }
+                if(e.key == "Down" || e.key == "ArrowDown"){
+                    downPressed = true;
+                }
+            }
+
+            function keyUpHandler(e){
+                if(e.key == "Up" || e.key == "ArrowUp"){
+                    upPressed = false;
+                }
+                if(e.key == "Down" || e.key == "ArrowDown"){
+                    downPressed = false; 
+                }
+            }
+
+            function drawBall(){
+                ctx.beginPath();
+                ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+                ctx.fillStyle = "#FFFAFA";
+                ctx.fill();
+                ctx.closePath();
+            }
+            
+            function drawPaddlePlayer(){
+                ctx.beginPath();
+                ctx.rect(offsetRight, paddlePlayer_Y, paddleWidth, paddleHeight);
+                ctx.fillStyle = "#FF00A2";
+                ctx.fill();
+                ctx.closePath();
+            }
+
+            function drawPaddleAI(){
+                ctx.beginPath();
+                ctx.rect(offsetLeft, paddleAI_Y, paddleWidth, paddleHeight);
+                ctx.fillStyle = "#F91111"
+                ctx.fill();
+                ctx.closePath();
+            }
+
+            function drawCenterLine(){
+                for(var i = 0; i < numDashes; i++){
+                    var dashY = i * (dashHeight + dashSpace) + offsetTop;
+                    ctx.beginPath();
+                    ctx.rect(centerLineX, dashY, dashWidth, dashHeight);
+                    ctx.fillStyle = "#00FFFF";
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            }
+
+            function drawScorePlayer(){
+                ctx.font = "48px Impact, Charcoal, sans-serif";
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillText(scorePlayer, centerLineX - 200, 100);
+            }
+
+            function drawScoreAI(){
+                ctx.font = "48px Impact, Charcoal, sans-serif";
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillText(scoreAI, centerLineX + 180, 100);
+            }
+            
+            function draw(){
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawBall();
+                drawPaddlePlayer(); 
+                drawPaddleAI(); 
+                drawCenterLine();
+                
+                //Controlls ball movement and rebounds
+                if(y + dy > canvas.height - ballRadius || y + dy < ballRadius){
+                    dy = -dy; 
+                }
+                
+                if(x + dx < paddleWidth + offsetRight){
+                    if(y + dy > paddlePlayer_Y && y + dy < (paddlePlayer_Y + paddleHeight)){
+                        dx = -dx;
+                    }
+                    if(x + dx < ballRadius){
+                        document.location.reload(); 
+                        clearInterval(interval); 
+                        scoreAI++;
+                    }
+                }
+                else if(x + dx > offsetLeft){
+                    if(y + dy > paddleAI_Y && y + dy < (paddleAI_Y + paddleHeight)){ 
+                        dx = -dx * Ball_Speed;
+                        paddleAI_Y *= AI_Speed;
+                    }
+                    if(x + dx > canvas.width - ballRadius){
+                        document.location.reload(); 
+                        clearInterval(interval); 
+                        scorePlayer += 1;
+                    }
+                }
+
+                //Controls paddle movement on the keyboard
+                if(downPressed && paddlePlayer_Y < canvas.height - paddleHeight){
+                    paddlePlayer_Y += 7;
+                }
+                else if(upPressed && paddlePlayer_Y > 0){
+                    paddlePlayer_Y -= 7; 
+                }
+
+                x += dx;
+                y += dy;
+
+                //Simple AI
+                paddleAI_Y += (y - (paddleAI_Y + paddleHeight / 2));
+                
+                drawScorePlayer();
+                drawScoreAI();
+            }
+
+            var interval = setInterval(draw, 10);
+        </script>
+   </body>
+</html>
+
